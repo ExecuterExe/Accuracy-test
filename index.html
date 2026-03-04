@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Испытание на меткость</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ruslan+Display&family=Comfortaa:wght@400;600;700&family=Nunito:wght@400;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            background: #041e24;
+            font-family: 'Comfortaa', cursive;
+            color: #f5f0e8
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(5, 80, 90, .35) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(5, 80, 90, .25) 0%, transparent 60%),
+                linear-gradient(180deg, #021318, #044a52 50%, #02252b)
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: .1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .7;
+                transform: scale(1.5)
+            }
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 24px 12px
+        }
+
+        .hdr {
+            text-align: center;
+            flex-shrink: 0;
+            padding: 4px 0 6px
+        }
+
+        .hdr h1 {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 2em;
+            background: linear-gradient(135deg, #ffd700, #ffed85, #ffa726, #ffd700);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s linear infinite
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 0% center
+            }
+
+            100% {
+                background-position: 200% center
+            }
+        }
+
+        .score-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 5px 20px;
+            margin: 4px auto;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 215, 0, .1);
+            border-radius: 40px;
+            width: fit-content;
+            flex-shrink: 0
+        }
+
+        .score-bar .lb {
+            color: rgba(180, 220, 225, .6);
+            font-size: .8em
+        }
+
+        .score-bar .vl {
+            font-family: 'Ruslan Display', cursive;
+            color: #ffd700;
+            font-size: 1.2em
+        }
+
+        .ptrack {
+            width: 100px;
+            height: 5px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 3px;
+            overflow: hidden
+        }
+
+        .pfill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            border-radius: 3px;
+            transition: width .6s;
+            width: 0%
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            overflow: hidden
+        }
+
+        /* WHEEL */
+        .wheel-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px
+        }
+
+        .wheel-view.hidden {
+            display: none
+        }
+
+        .wheel-stage {
+            position: relative;
+            width: min(55vh, 480px);
+            height: min(55vh, 480px)
+        }
+
+        .wheel-glow {
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 215, 0, .12), transparent 70%);
+            animation: gp 3s ease-in-out infinite
+        }
+
+        @keyframes gp {
+
+            0%,
+            100% {
+                opacity: .5;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.04)
+            }
+        }
+
+        .wheel-glow.on {
+            animation: gs .4s ease-in-out infinite
+        }
+
+        @keyframes gs {
+
+            0%,
+            100% {
+                opacity: .7
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .ptr {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .5))
+        }
+
+        .ptr svg {
+            width: 36px;
+            height: 44px;
+            animation: bob 2s ease-in-out infinite
+        }
+
+        .ptr.on svg {
+            animation: none
+        }
+
+        @keyframes bob {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(3px)
+            }
+        }
+
+        canvas#wheel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 10
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border: none;
+            padding: 14px 48px;
+            font-size: 1.2em;
+            font-family: 'Ruslan Display', cursive;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all .3s;
+            position: relative
+        }
+
+        .spin-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 62px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #ffd700);
+            z-index: -1;
+            filter: blur(12px);
+            opacity: .4
+        }
+
+        .spin-btn:hover {
+            transform: translateY(-2px) scale(1.03)
+        }
+
+        .spin-btn:disabled {
+            background: linear-gradient(135deg, #555, #333);
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .spin-btn:disabled::before {
+            opacity: 0
+        }
+
+        .rem {
+            color: rgba(180, 220, 225, .4);
+            font-size: .8em
+        }
+
+        /* QUESTION */
+        .q-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .q-view.show {
+            display: flex;
+            animation: fadeIn .5s ease
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .badge {
+            text-align: center;
+            flex-shrink: 0;
+            margin-bottom: 6px
+        }
+
+        .badge span {
+            display: inline-block;
+            background: rgba(255, 215, 0, .08);
+            border: 1px solid rgba(255, 215, 0, .2);
+            color: #ffd700;
+            font-family: 'Ruslan Display', cursive;
+            font-size: 1em;
+            padding: 5px 22px;
+            border-radius: 30px
+        }
+
+        /* PHASE 1: Tale */
+        .phase-tale {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+            padding: 0 10px
+        }
+
+        .phase-tale.hidden {
+            display: none
+        }
+
+        .tale-box {
+            position: relative;
+            background: linear-gradient(160deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .02));
+            border: 1px solid rgba(255, 215, 0, .12);
+            border-radius: 24px;
+            padding: 28px 34px;
+            max-height: 100%;
+            overflow-y: auto;
+            width: 100%;
+            max-width: 950px
+        }
+
+        .tale-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, .3), transparent)
+        }
+
+        .tale-tag {
+            font-size: .7em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: rgba(255, 215, 0, .5);
+            margin-bottom: 10px
+        }
+
+        .tale-txt {
+            font-size: 2.1em;
+            line-height: 1.65;
+            color: #ffffff;
+            padding-left: 18px;
+            border-left: 3px solid rgba(255, 215, 0, .2);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, .4);
+        }
+
+        .ans-area {
+            margin-top: 14px;
+            text-align: center;
+            flex-shrink: 0
+        }
+
+        .reveal-btn {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(46, 204, 113, .5);
+            color: #2ecc71;
+            padding: 14px 44px;
+            font-size: 1.15em;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .reveal-btn:hover {
+            background: rgba(46, 204, 113, .15);
+            transform: translateY(-2px)
+        }
+
+        .ans-reveal {
+            display: none;
+            margin-top: 10px
+        }
+
+        .ans-reveal.show {
+            display: block;
+            animation: pop .6s cubic-bezier(.68, -.55, .265, 1.55) forwards
+        }
+
+        @keyframes pop {
+            from {
+                opacity: 0;
+                transform: scale(.3)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .ans-word {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 3.6em;
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 6px rgba(255, 165, 0, .3))
+        }
+
+        .go-phase-btn {
+            margin-top: 12px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff;
+            border: none;
+            padding: 13px 38px;
+            font-size: 1.05em;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all .3s;
+            display: none
+        }
+
+        .go-phase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, .25)
+        }
+
+        /* PHASE 2: Challenge */
+        .phase-challenge {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            min-height: 0;
+            width: 100%
+        }
+
+        .phase-challenge.show {
+            display: flex;
+            animation: fadeIn .5s ease
+        }
+
+        .chal-answer {
+            text-align: center
+        }
+
+        .chal-answer .chal-sub {
+            color: rgba(200, 230, 235, .6);
+            font-size: .8em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 4px
+        }
+
+        .chal-answer .chal-word {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 4em;
+            background: linear-gradient(135deg, #ffd700, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 8px rgba(255, 165, 0, .3))
+        }
+
+        .chal-card {
+            background: linear-gradient(160deg, rgba(231, 76, 60, .1), rgba(192, 57, 43, .04));
+            border: 1px solid rgba(231, 76, 60, .3);
+            border-radius: 20px;
+            padding: 22px 28px;
+            text-align: center;
+            width: 100%;
+            max-width: 700px
+        }
+
+        .chal-label {
+            font-size: .85em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #ff6b6b;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .chal-desc {
+            font-size: 1em;
+            color: rgba(220, 220, 220, .8);
+            margin-bottom: 16px;
+            line-height: 1.5
+        }
+
+        .forb-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center
+        }
+
+        .forb-tag {
+            background: rgba(231, 76, 60, .15);
+            border: 2px solid rgba(255, 100, 100, .5);
+            color: #ff4444;
+            padding: 10px 26px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.7em;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+        }
+
+        .forb-tag .x {
+            color: rgba(255, 80, 80, .7);
+            font-size: .85em;
+            margin-right: 5px
+        }
+
+        .start-timer-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: #fff;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1em;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .start-timer-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, .25)
+        }
+
+        .timer-wrap {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px
+        }
+
+        .timer-wrap.show {
+            display: flex;
+            animation: pop .4s ease
+        }
+
+        .t-circle {
+            position: relative;
+            width: 130px;
+            height: 130px
+        }
+
+        .t-circle svg {
+            transform: rotate(-90deg);
+            width: 130px;
+            height: 130px
+        }
+
+        .t-circle .trk {
+            fill: none;
+            stroke: rgba(255, 255, 255, .08);
+            stroke-width: 5
+        }
+
+        .t-circle .br {
+            fill: none;
+            stroke: #ffd700;
+            stroke-width: 5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke .5s
+        }
+
+        .t-circle .br.danger {
+            stroke: #e74c3c
+        }
+
+        .t-num {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Ruslan Display', cursive;
+            font-size: 2.8em;
+            color: #ffd700;
+            transition: color .5s
+        }
+
+        .t-num.danger {
+            color: #e74c3c;
+            animation: pulse .5s ease-in-out infinite alternate
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1)
+            }
+
+            to {
+                transform: scale(1.1)
+            }
+        }
+
+        .t-lbl {
+            font-size: .75em;
+            color: rgba(180, 220, 225, .4)
+        }
+
+        .bottom-nav {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px
+        }
+
+        .bottom-nav.hidden {
+            display: none
+        }
+
+        .bn {
+            border: none;
+            padding: 10px 28px;
+            font-size: .95em;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all .3s
+        }
+
+        .bn-g {
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .2);
+            color: #bbb
+        }
+
+        .bn-g:hover {
+            background: rgba(255, 255, 255, .12);
+            color: #fff
+        }
+
+        .bn-p {
+            background: linear-gradient(135deg, #05616B, #0a8a97);
+            color: #fff
+        }
+
+        .bn-p:hover {
+            transform: translateY(-2px)
+        }
+
+        .fin {
+            display: none;
+            text-align: center
+        }
+
+        .fin.show {
+            display: block;
+            animation: fadeIn .8s ease
+        }
+
+        .trophy {
+            font-size: 5em;
+            animation: ts 3s ease-in-out infinite
+        }
+
+        @keyframes ts {
+
+            0%,
+            100% {
+                transform: rotate(-5deg) scale(1)
+            }
+
+            50% {
+                transform: rotate(5deg) scale(1.1)
+            }
+        }
+
+        .fin h2 {
+            font-family: 'Ruslan Display', cursive;
+            font-size: 2.2em;
+            color: #ffd700;
+            margin: 15px 0 8px
+        }
+
+        .fin p {
+            color: rgba(180, 220, 225, .7);
+            font-size: 1.05em
+        }
+
+        .rst {
+            margin-top: 25px;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #1a1a2e;
+            border: none;
+            padding: 14px 42px;
+            font-size: 1.1em;
+            font-family: 'Ruslan Display', cursive;
+            border-radius: 60px;
+            cursor: pointer
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center
+        }
+
+        .modal.show {
+            display: flex
+        }
+
+        .mbox {
+            background: linear-gradient(160deg, #0d2f3a, #081c22);
+            border: 1px solid rgba(231, 76, 60, .3);
+            border-radius: 24px;
+            padding: 35px 50px;
+            text-align: center;
+            animation: mp .5s cubic-bezier(.68, -.55, .265, 1.55) forwards
+        }
+
+        @keyframes mp {
+            from {
+                transform: scale(.5);
+                opacity: 0
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .mbox .mi {
+            font-size: 3em;
+            margin-bottom: 10px
+        }
+
+        .mbox h3 {
+            font-family: 'Ruslan Display', cursive;
+            color: #e74c3c;
+            font-size: 1.5em;
+            margin-bottom: 6px
+        }
+
+        .mbox p {
+            color: #999;
+            margin-bottom: 20px
+        }
+
+        .mbox button {
+            background: linear-gradient(135deg, #05616B, #0a8a97);
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            font-family: 'Comfortaa', cursive;
+            font-weight: 700;
+            font-size: 1em;
+            border-radius: 60px;
+            cursor: pointer
+        }
+
+        .conf-c {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9999
+        }
+
+        .conf {
+            position: absolute;
+            top: -10px;
+            animation: cf linear forwards
+        }
+
+        @keyframes cf {
+            0% {
+                transform: translateY(-10px) rotate(0) scale(1);
+                opacity: 1
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(1080deg) scale(.5);
+                opacity: 0
+            }
+        }
+
+        @media(max-height:700px) {
+            .tale-txt {
+                font-size: 1.6em;
+                line-height: 1.5
+            }
+
+            .ans-word {
+                font-size: 2.8em !important
+            }
+
+            .chal-word {
+                font-size: 3em !important
+            }
+
+            .forb-tag {
+                font-size: 1.2em;
+                padding: 8px 20px
+            }
+        }
+
+        @media(max-height:550px) {
+            .tale-txt {
+                font-size: 1.3em;
+                line-height: 1.4
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg"></div>
+    <div class="stars" id="stars"></div>
+
+    <div class="app">
+        <div class="hdr">
+            <h1>🎯 Испытание на меткость</h1>
+        </div>
+        <div class="score-bar">
+            <span class="lb">Пройдено</span>
+            <span class="vl"><span id="done">0</span>/<span id="total">0</span></span>
+            <div class="ptrack">
+                <div class="pfill" id="pFill"></div>
+            </div>
+        </div>
+        <div class="main">
+            <div class="wheel-view" id="wV">
+                <div class="wheel-stage">
+                    <div class="wheel-glow" id="wG"></div>
+                    <div class="ptr" id="ptr">
+                        <svg viewBox="0 0 40 50" fill="none">
+                            <path d="M20 46 L5 10 Q20 15 35 10 Z" fill="#ffd700" stroke="#fff" stroke-width="1.5" />
+                            <circle cx="20" cy="8" r="5" fill="#ffd700" stroke="#fff" stroke-width="1.5" />
+                        </svg>
+                    </div>
+                    <canvas id="wheel" width="800" height="800"></canvas>
+                </div>
+                <button class="spin-btn" id="spinBtn" onclick="spin()">✦ Крутить колесо</button>
+                <div class="rem" id="rem"></div>
+            </div>
+
+            <div class="q-view" id="qV">
+                <div class="badge"><span id="qB">Задание №1</span></div>
+                <div class="phase-tale" id="ph1">
+                    <div class="tale-box">
+                        <div class="tale-tag">🏰 Сказочное описание</div>
+                        <div class="tale-txt" id="tTxt"></div>
+                    </div>
+                    <div class="ans-area">
+                        <button class="reveal-btn" id="rBtn" onclick="reveal()">👁 Показать ответ</button>
+                        <div class="ans-reveal" id="aRev">
+                            <div class="ans-word" id="aWord"></div>
+                        </div>
+                        <button class="go-phase-btn" id="goBtn" onclick="goChallenge()">⚔️ Начать испытание</button>
+                    </div>
+                </div>
+                <div class="phase-challenge" id="ph2">
+                    <div class="chal-answer">
+                        <div class="chal-sub">Нужно объяснить</div>
+                        <div class="chal-word" id="cWord"></div>
+                    </div>
+                    <div class="chal-card">
+                        <div class="chal-label">🚫 ЗАПРЕЩЁННЫЕ СЛОВА</div>
+                        <div class="forb-list" id="fList"></div>
+                    </div>
+                    <button class="start-timer-btn" id="stBtn" onclick="startT()">⏱ Запустить таймер — 35 сек</button>
+                    <div class="timer-wrap" id="tWrap">
+                        <div class="t-circle">
+                            <svg viewBox="0 0 130 130">
+                                <circle class="trk" cx="65" cy="65" r="56" />
+                                <circle class="br" id="tBar" cx="65" cy="65" r="56" stroke-dasharray="351.86"
+                                    stroke-dashoffset="0" />
+                            </svg>
+                            <div class="t-num" id="tNum">35</div>
+                        </div>
+                        <div class="t-lbl">секунд</div>
+                    </div>
+                </div>
+                <div class="bottom-nav hidden" id="bnav">
+                    <button class="bn bn-g" onclick="back()">← К колесу</button>
+                    <button class="bn bn-p" onclick="back()">Следующее →</button>
+                </div>
+            </div>
+
+            <div class="fin" id="fin">
+                <div class="trophy">🏆</div>
+                <h2>Все задания пройдены!</h2>
+                <p>Богатыри показали знатную меткость!</p>
+                <button class="rst" onclick="reset()">🔄 Заново</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="mbox">
+            <div class="mi">⏰</div>
+            <h3>Время вышло!</h3>
+            <p>Песочные часы опустели</p>
+            <button onclick="closeM()">Понятно</button>
+        </div>
+    </div>
+
+    <script>
+        const Q = [
+            { tale: "Завелась в царстве-государстве напасть невидимая, Змею Горынычу подобная. Вроде и монет в кошелях у люда не убавилось, да только купить на них теперь можно не коня богатырского, а лишь козу хромую", answer: "Инфляция", no: ["Цены", "Дорого", "Рост"] },
+            { tale: "Мудрый хозяин знает: жизнь — штука переменчивая. То солнце светит, то град посевы побьет. Потому держит он кубышку заветную, в самый дальний угол припрятанную. Не на пиры да гуляния, а на «черный день», чтобы, коль беда постучится, семья с голоду не пухла", answer: "Подушка безопасности или сбережения", no: ["Чёрный день", "Запас", "Копить"] },
+            { tale: "Всяк, кто на земле царской живет, да ремеслом промышляет, должен часть малую от прибытка своего в казну государеву отнести. На те монеты потом дружину содержат, чтобы враг не прошел, да мосты через реки бурные строят", answer: "Налоги", no: ["Государство", "Платить", "Закон"] },
+            { tale: "Грамота охранная, что бережет от огня, воды и лихого глаза. Платишь знахарю малую монету каждый год, и вроде ничего не происходит. Но коль сгорит изба или корова захворает — знахарь тот убытки покроет и новую избу срубить поможет", answer: "Страхование", no: ["Защита", "Случай", "Договор"] },
+            { tale: "Хочет добрый молодец жить в тереме расписном прямо сейчас, да золота у него только на крыльцо хватает. Идет он к ростовщику, и тот покупает ему терем. Но взамен надевает на молодца хомут тяжелый лет на двадцать, а то и на тридцать", answer: "Ипотека", no: ["Квартира", "Банк"] },
+            { tale: "Награда за труды праведные и долгие. Пока молод был богатырь — мечом махал, землю пахал, да в казну подати платил. А как стали власы седыми, а спина согнулась — государь ему содержание назначил. Сиди на печи, грызи калачи, да внукам сказки сказывай", answer: "Пенсия", no: ["Старость", "Работа", "Возраст"] },
+            { tale: "Это те самые «детки», что у денег рождаются. Если ты банку дал монеты — это твоя награда, масло к твоему хлебу. А если ты у банка взял — это твоя кара, плата за нетерпение, что сверху долга нарастает, как снежный ком", answer: "Процент", no: ["Прибыль", "Сумма", "Переплата"] },
+            { tale: "Чудное диво на ярмарке! Покупаешь ты у купца кафтан новый, отдаешь ему монеты звонкие, а он тебе вдруг горсть медяков обратно в ладонь сыпет. «Спасибо, — говорит, — что меня выбрал, вот тебе гостинец за верность»", answer: "Кэшбэк", no: ["Возврат", "Назад", "Карта"] },
+            { tale: "Стоит на перекрестке избушка маленькая, пестрая. Заманивают туда обещаниями: «Бери злато сейчас, никаких грамот не надо, верим на слово!». Но горе тому, кто туда зайдет. Возьмешь на лапоть, а отдашь сапоги сафьяновые", answer: "Микрозайм или МФО", no: ["Быстро", "Паспорт", "Много"] },
+            { tale: "Искусство зазывал ярмарочных. Умение так простую репу расхвалить, будто это яблоко молодильное. Картинки рисуют яркие, скоморохов нанимают плясать — и всё ради того, чтобы ты купил то, что тебе и вовсе не надобно", answer: "Реклама или маркетинг", no: ["Товар", "Купить", "Продажа"] },
+            { tale: "Посчитали бояре думные, сколько простому люду надо хлеба, молока да дров, чтобы с голоду не помереть и ноги не протянуть. Самая малая мера, черта бедности, ниже которой — уже не жизнь, а выживание лютое", answer: "Прожиточный минимум", no: ["Уровень", "Грань"] },
+            { tale: "Летопись тайная, что писцы в банках ведут на каждого человека. Записан там каждый твой шаг. Коль чиста твоя летопись — дадут тебе злата с поклоном. А коль запятнана грехами старыми — укажут на дверь", answer: "Кредитная история", no: ["Прошлое", "Банк", "Плохая/Хорошая"] },
+            { tale: "Затея дерзкая, молодецкая. Придумали умельцы то, чего свет не видывал, и хотят на этом деле разбогатеть. Денег пока нет, одни обещания да горящие глаза. Либо взлетят соколом ясным, либо разобьются о землю сырую", answer: "Стартап", no: ["Бизнес", "Идея", "Новый"] },
+            { tale: "Строение хитрое, обманное. Зовут тебя внести рубль, чтобы завтра получить два. И правда, первым смельчакам платят, но платят деньгами тех, кто пришел следом. Растет эта гора, пока новые голубцы находятся", answer: "Финансовая пирамида", no: ["Обман", "МММ", "Друзья"] },
+            { tale: "Царь над всеми ростовщиками и менялами. Сам он людям простым денег не даёт, зато за другими банками зорко следит: кому велит открыться, а кого и розгами высечет да лицензию отберет", answer: "Центральный банк", no: ["Главный", "Печатать"] },
+            { tale: "Люди грозные да настойчивые, что приходят по душу должника нерадивого. Выкупили они твой долг у банка за бесценок и теперь ходят за тобой тенью, звонят в колокола, письма шлют страшные, требуя вернуть взятое", answer: "Коллекторы", no: ["Выбивать", "Звонить", "Долг"] },
+            { tale: "Дал ты в долг не соседу Ваське, а самому Царству-государству или купцу богатейшему. А они тебе расписку дали: «Вернем через три года с процентом малым, но верным». Надежнее, чем в рулетку играть", answer: "Облигации", no: ["Долг", "Бумага", "Государство"] },
+            { tale: "Дыра в кармане государевом или семейном. Хочется купить и кафтан, и сапоги, и пир закатить, а монет в кошеле — кот наплакал. Расходов тьма, а доходов — тьфу", answer: "Дефицит бюджета", no: ["Расходы", "Больше"] },
+            { tale: "Игла Кощеева, от коей все цены на деньги в царстве зависят. Главный Банкир её в руках держит: повернет вверх — кредиты дорожают, все сберегать кинутся. Повернет вниз — народ тратить бежит, но и цены пухнут", answer: "Ключевая ставка", no: ["Процент", "ЦБ", "Кредит"] },
+            { tale: "Налетела туча черная на царство процветающее. Купцы лавки закрывают, в казне ветер свищет, а народ пояса затягивает. Вчера пировали горой, а сегодня — сухари сушим", answer: "Экономический кризис", no: ["Плохо", "Падение"] },
+            { tale: "Ходят добры молодцы да красны девицы по дворам, силушку предложить хотят, а ворота везде заперты. И рады бы пахать, ковать, да терема строить, но хозяева говорят: «Не нужны нам нынче вы»", answer: "Безработица", no: ["Работа", "Сокращение"] },
+            { tale: "Прежде чем терем расписной рубить или артель заводить, мудрый купец берет свиток чистый и перо гусиное. Пишет: сколько гвоздей купить, сколько работников нанять, почем товар продавать, чтобы в трубу не вылететь", answer: "Бизнес-план", no: ["Бумага", "Документ", "Расписано"] },
+            { tale: "Звонкое зло и великое благо в одном флаконе. Любят счет, тишину и когда их много. Кругляши из металла, бумажки с картинками или цифры невидимые, что миром правят", answer: "Деньги", no: ["Купить", "Магазин", "Рубль"] },
+            { tale: "Живет в кармане или за пазухой. Коль пухлый да тяжелый — хозяин гордо идет. А коль тощий да пустой — тоска зеленая, и мышь там вешается. Хранитель казны личной", answer: "Кошелёк", no: ["Хранить", "Карман", "Деньги"] },
+            { tale: "Подарок от купца хитрого. Видит он, что товар залежался, и говорит: «Бери кафтан не за пятак, а за три гроша!». Сердцу покупателя услада", answer: "Скидка", no: ["Дешевле", "Меньше", "Акция"] },
+            { tale: "Зверь глиняный с прорезью узкой. Бросаешь туда по кругляшу каждый день, и достать нельзя, пока брюхо не разобьешь. Собираешь по капле, чтобы потом море получить", answer: "Копилка", no: ["Собирать", "Разбивать"] },
+            { tale: "Грамота малая, бумажная, что купец тебе в руки сует после торга. Вроде и ценности никакой. Но случись что с товаром — без этой бумажки ты букашка, и правды не добьешься", answer: "Кассовый чек", no: ["Бумага", "Доказательство"] },
+            { tale: "Всё золото, что за день ярмарочный в сундук насыпалось. Звенит громко, и кажется купцу, что богат несметно. Да только из этой горы надо за аренду отдать, помощникам заплатить да за новый товар внести", answer: "Выручка", no: ["Прибыль", "Касса"] },
+            { tale: "Пластинка волшебная, в коей дно двойное. Своих денег там может и нет, но расплатиться можно всегда. Берешь чужое на время, а возвращать придется с поклоном. Искушение, что всегда в кармане лежит", answer: "Кредитная карта", no: ["Банк", "Пластик", "Долг"] },
+            { tale: "Ярмарка невидимая, что в зеркальце волшебном помещается. Лежишь на печи, пальцем водишь — и товары со всего света сами к тебе едут. Товар не пощупаешь, пока гонец к порогу не принесет", answer: "Маркетплейс", no: ["Интернет", "Сайт", "Магазин"] },
+            { tale: "Наваждение ярмарочное. Пошел за хлебом насущным, а вернулся с гармонью, пряником и петухом на палочке. Зачем оно тебе — сам не ведаешь, бес попутал", answer: "Импульсивная покупка", no: ["Захотелось", "Ненужное", "Вдруг"] },
+            { tale: "Деньги на гуляния законные. Раз в год отпускает барин работника на все четыре стороны. И дает мешок монет заранее, чтобы было на что пировать, пока работа стоит", answer: "Отпускные", no: ["Отдых", "Лето"] },
+            { tale: "Змей многоголовый бумажный. Хочешь справку простую — а тебя посылают за справкой на справку. Из одной избы в другую гоняют. Дело на копейку, а беготни на рубль", answer: "Бюрократия", no: ["Бумажка", "Справка", "Очередь"] },
+            { tale: "Пока монету кидаешь — скоморохи пляшут, гусли играют, кино заморское крутится. Перестал платить — музыка смолкла, ворота закрылись. Доступ к благам, пока казна не иссякнет", answer: "Подписка", no: ["Месяц", "Регулярно"] },
+            { tale: "Мешок золота, что царь дает даром. Но не за красивые глаза, а под обещание: изобрести колесо новое или лекарство от хвори. Возвращать не надо, но за каждую копейку отчитаться придется", answer: "Грант", no: ["Безвозмездно", "Подарок"] },
+            { tale: "То, из чего всё делается, но само по себе еще не готово. Руда, что меча не видела; лен, что рубахой не стал; нефть, что в повозку не залита. Кровь земли, которую добывают, чтоб мастера в товар превратили", answer: "Сырьё / Ресурсы", no: ["Материал", "Переработка"] }
+        ];
+
+        const PAL = ['#c0392b', '#2980b9', '#27ae60', '#e67e22', '#8e44ad', '#16a085', '#d35400', '#2c3e50', '#f39c12', '#1abc9c', '#e74c3c', '#3498db', '#2ecc71', '#e84393', '#00b894', '#6c5ce7', '#fd79a8', '#0984e3', '#00cec9', '#e17055', '#a29bfe', '#55efc4', '#fab1a0', '#74b9ff', '#ff7675', '#81ecec', '#ffeaa7', '#636e72', '#b8e994', '#78e08f', '#38ada9', '#b71540', '#0c2461', '#0a3d62', '#60a3bc', '#6a89cc', '#e55039'];
+        let av = [], dn = 0, cQ = null, cI = null, tI = null, tL = 35, sp = false, ang = 0, vel = 0, secs = [];
+
+        function init() { av = Q.map((_, i) => i); dn = 0; ang = 0; updS(); mkS(); showW(); }
+        function updS() { $('done').textContent = dn; $('total').textContent = Q.length; $('pFill').style.width = (dn / Q.length * 100) + '%'; }
+        function $(id) { return document.getElementById(id) }
+        function mkS() { const c = $('stars'); c.innerHTML = ''; for (let i = 0; i < 50; i++) { const s = document.createElement('div'); s.className = 'star'; s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%'; s.style.animationDuration = (2 + Math.random() * 4) + 's'; s.style.animationDelay = Math.random() * 5 + 's'; c.appendChild(s); } }
+
+        function buildS() { secs = av.map(qi => ({ qi, label: String(qi + 1), color: PAL[qi % PAL.length] })); }
+
+        function drawW(rot) {
+            const cv = $('wheel'), ctx = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2, R = W / 2 - 30;
+            ctx.clearRect(0, 0, W, H); const n = secs.length; if (!n) return; const arc = 2 * Math.PI / n;
+            ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
+            ctx.beginPath(); ctx.arc(0, 0, R + 15, 0, 2 * Math.PI);
+            const rg = ctx.createRadialGradient(0, 0, R, 0, 0, R + 20); rg.addColorStop(0, 'rgba(255,215,0,.15)'); rg.addColorStop(1, 'transparent'); ctx.fillStyle = rg; ctx.fill();
+            for (let i = 0; i < n; i++) {
+                const a = i * arc; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, R, a, a + arc); ctx.closePath();
+                const g = ctx.createRadialGradient(0, 0, R * .12, 0, 0, R); g.addColorStop(0, lc(secs[i].color, 45)); g.addColorStop(.4, secs[i].color); g.addColorStop(1, dc(secs[i].color, 35)); ctx.fillStyle = g; ctx.fill();
+                const sg = ctx.createRadialGradient(0, 0, R * .75, 0, 0, R); sg.addColorStop(0, 'transparent'); sg.addColorStop(1, 'rgba(0,0,0,.2)'); ctx.fillStyle = sg; ctx.fill();
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1.5; ctx.stroke();
+                ctx.save(); ctx.rotate(a + arc / 2); const fs = Math.max(14, Math.min(30, 380 / n)); ctx.font = `900 ${fs}px 'Nunito',sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 3; ctx.fillText(secs[i].label, R * .6, 0); ctx.shadowBlur = 0; ctx.restore();
+            }
+            ctx.beginPath(); ctx.arc(0, 0, R, 0, 2 * Math.PI); ctx.strokeStyle = 'rgba(255,215,0,.2)'; ctx.lineWidth = 2.5; ctx.stroke();
+            for (let i = 0; i < n; i++) { const a = i * arc + arc / 2; ctx.beginPath(); ctx.arc(Math.cos(a) * R, Math.sin(a) * R, 3.5, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,215,0,.25)'; ctx.fill(); }
+            const hg = ctx.createRadialGradient(0, 0, 4, 0, 0, 32); hg.addColorStop(0, '#ffe680'); hg.addColorStop(.6, '#ffd700'); hg.addColorStop(1, '#b8860b');
+            ctx.beginPath(); ctx.arc(0, 0, 30, 0, 2 * Math.PI); ctx.fillStyle = hg; ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 15, 0, 2 * Math.PI); ctx.fillStyle = 'rgba(255,255,255,.12)'; ctx.fill();
+            ctx.font = '18px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#5a3500'; ctx.fillText('🎯', 0, 1); ctx.restore();
+        }
+        function lc(h, a) { let c = parseInt(h.replace('#', ''), 16); return `rgb(${Math.min(255, (c >> 16) + a)},${Math.min(255, ((c >> 8) & 0xff) + a)},${Math.min(255, (c & 0xff) + a)})`; }
+        function dc(h, a) { let c = parseInt(h.replace('#', ''), 16); return `rgb(${Math.max(0, (c >> 16) - a)},${Math.max(0, ((c >> 8) & 0xff) - a)},${Math.max(0, (c & 0xff) - a)})`; }
+
+        function spin() {
+            if (sp || !av.length) return; sp = true; $('spinBtn').disabled = true; $('wG').classList.add('on'); $('ptr').classList.add('on');
+            vel = 0.40 + Math.random() * 0.25;
+            const fr = 0.978 + Math.random() * 0.005;
+            (function anim() {
+                ang += vel; vel *= fr; drawW(ang);
+                if (vel > .001) requestAnimationFrame(anim);
+                else {
+                    sp = false; $('wG').classList.remove('on'); $('ptr').classList.remove('on');
+                    const n = secs.length, arc = 2 * Math.PI / n; let norm = ((-ang - Math.PI / 2) % (2 * Math.PI) + 4 * Math.PI) % (2 * Math.PI);
+                    let idx = Math.floor(norm / arc); if (idx >= n) idx = n - 1; pick(secs[idx].qi);
+                }
+            })();
+        }
+        function pick(qi) { cI = qi; cQ = Q[qi]; av = av.filter(i => i !== qi); dn++; updS(); setTimeout(showQ, 500); }
+
+        function showW() {
+            if (!av.length) { showF(); return; }
+            $('wV').classList.remove('hidden'); $('wV').style.display = 'flex';
+            $('qV').style.display = 'none'; $('qV').classList.remove('show');
+            $('fin').style.display = 'none'; $('fin').classList.remove('show');
+            clrT(); buildS(); drawW(ang); $('spinBtn').disabled = false;
+            $('rem').textContent = `Осталось: ${av.length} из ${Q.length}`;
+        }
+        function showQ() {
+            $('wV').classList.add('hidden');
+            setTimeout(() => {
+                $('wV').style.display = 'none';
+                const qv = $('qV'); qv.style.display = 'flex'; qv.classList.remove('show'); void qv.offsetWidth; qv.classList.add('show');
+            }, 300);
+            $('qB').textContent = `Задание №${cI + 1}`;
+            $('tTxt').textContent = cQ.tale;
+            $('ph1').style.display = 'flex'; $('ph1').classList.remove('hidden');
+            $('ph2').style.display = 'none'; $('ph2').classList.remove('show');
+            $('rBtn').style.display = 'inline-block';
+            $('aRev').classList.remove('show'); $('aRev').style.display = 'none';
+            $('goBtn').style.display = 'none';
+            $('bnav').classList.add('hidden');
+            clrT();
+        }
+        function reveal() {
+            $('rBtn').style.display = 'none';
+            const a = $('aRev'); a.style.display = 'block'; a.classList.remove('show'); void a.offsetWidth; a.classList.add('show');
+            $('aWord').textContent = cQ.answer;
+            setTimeout(() => { $('goBtn').style.display = 'inline-block'; }, 500);
+        }
+        function goChallenge() {
+            $('ph1').classList.add('hidden');
+            setTimeout(() => {
+                $('ph1').style.display = 'none';
+                const p2 = $('ph2'); p2.style.display = 'flex'; p2.classList.remove('show'); void p2.offsetWidth; p2.classList.add('show');
+                $('cWord').textContent = cQ.answer;
+                const fl = $('fList'); fl.innerHTML = '';
+                cQ.no.forEach(w => { const t = document.createElement('span'); t.className = 'forb-tag'; t.innerHTML = `<span class="x">✕</span> ${w}`; fl.appendChild(t); });
+                $('stBtn').style.display = 'inline-block';
+                $('tWrap').classList.remove('show'); $('tWrap').style.display = 'none';
+                $('bnav').classList.remove('hidden');
+            }, 300);
+        }
+        function startT() {
+            $('stBtn').style.display = 'none';
+            const tw = $('tWrap'); tw.style.display = 'flex'; tw.classList.remove('show'); void tw.offsetWidth; tw.classList.add('show');
+            tL = 35; updTUI(); clrT();
+            tI = setInterval(() => {
+                tL--; updTUI();
+                if (tL <= 7) { $('tBar').classList.add('danger'); $('tNum').classList.add('danger'); }
+                if (tL <= 0) { clrT(); $('modal').classList.add('show'); }
+            }, 1000);
+        }
+        function updTUI() {
+            const c = 2 * Math.PI * 56;
+            $('tNum').textContent = tL;
+            $('tBar').style.strokeDashoffset = c * (1 - tL / 35);
+        }
+        function clrT() { if (tI) { clearInterval(tI); tI = null; } const b = $('tBar'), n = $('tNum'); if (b) b.classList.remove('danger'); if (n) n.classList.remove('danger'); }
+        function closeM() { $('modal').classList.remove('show'); }
+        function back() { clrT(); if (!av.length) showF(); else showW(); }
+        function showF() {
+            $('wV').style.display = 'none'; $('qV').style.display = 'none';
+            const f = $('fin'); f.style.display = 'block'; f.classList.remove('show'); void f.offsetWidth; f.classList.add('show'); confetti();
+        }
+        function reset() { init(); }
+        function confetti() {
+            const c = document.createElement('div'); c.className = 'conf-c'; document.body.appendChild(c);
+            const cols = ['#ffd700', '#ff6b6b', '#48dbfb', '#ff9ff3', '#54a0ff', '#feca57', '#01a3a4'];
+            for (let i = 0; i < 100; i++) {
+                const p = document.createElement('div'); p.className = 'conf'; const sz = 4 + Math.random() * 8;
+                p.style.width = sz + 'px'; p.style.height = sz + 'px'; p.style.background = cols[~~(Math.random() * cols.length)];
+                p.style.left = Math.random() * 100 + '%'; p.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+                p.style.animationDuration = (2 + Math.random() * 2) + 's'; p.style.animationDelay = Math.random() * 2 + 's'; c.appendChild(p);
+            }
+            setTimeout(() => c.remove(), 5000);
+        }
+        window.addEventListener('load', init);
+    </script>
+</body>
+
+</html>
